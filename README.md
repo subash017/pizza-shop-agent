@@ -2,7 +2,7 @@
 title: Pizza Shop OpenEnv
 emoji: "🍕"
 colorFrom: red
-colorTo: orange
+colorTo: yellow
 sdk: docker
 pinned: false
 ---
