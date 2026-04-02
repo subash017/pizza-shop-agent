@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Hackathon Topic - OpenEnv Round 1</title>
+  <style>
+    :root {
+      --ink: #10231a;
+      --paper: #f8f6ef;
+      --accent: #e4572e;
+      --accent-2: #2e6f95;
+      --card: #fffdf8;
+      --line: #d9d2bf;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: "Space Grotesk", "Segoe UI", sans-serif;
+      color: var(--ink);
+      background:
+        radial-gradient(1200px 500px at 85% -20%, #ffd8a8 0%, transparent 60%),
+        radial-gradient(1000px 500px at -5% 110%, #c9e5f5 0%, transparent 55%),
+        var(--paper);
+      min-height: 100vh;
+      line-height: 1.5;
+    }
+
+    .wrap {
+      max-width: 1000px;
+      margin: 0 auto;
+      padding: 40px 20px 60px;
+    }
+
+    .hero {
+      background: linear-gradient(135deg, rgba(228, 87, 46, 0.1), rgba(46, 111, 149, 0.12));
+      border: 1px solid var(--line);
+      border-radius: 20px;
+      padding: 28px;
+      box-shadow: 0 8px 25px rgba(16, 35, 26, 0.08);
+      animation: rise 700ms ease-out;
+    }
+
+    .eyebrow {
+      display: inline-block;
+      font-size: 0.82rem;
+      text-transform: uppercase;
+      letter-spacing: 0.11em;
+      font-weight: 700;
+      color: var(--accent-2);
+      margin-bottom: 10px;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: clamp(1.6rem, 2.8vw, 2.6rem);
+      line-height: 1.15;
+    }
+
+    .subtitle {
+      margin-top: 14px;
+      max-width: 80ch;
+      font-size: 1rem;
+    }
+
+    .grid {
+      margin-top: 24px;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 14px;
+    }
+
+    .card {
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 16px;
+    }
+
+    .card h3 {
+      margin: 0 0 8px;
+      font-size: 1rem;
+      color: var(--accent);
+    }
+
+    .card p,
+    li {
+      font-size: 0.95rem;
+    }
+
+    ul {
+      padding-left: 18px;
+      margin: 8px 0 0;
+    }
+
+    .topic {
+      margin-top: 22px;
+      padding: 16px;
+      border-left: 5px solid var(--accent);
+      background: rgba(255, 255, 255, 0.7);
+      border-radius: 10px;
+      font-weight: 600;
+    }
+
+    .footer {
+      margin-top: 22px;
+      font-size: 0.88rem;
+      opacity: 0.78;
+    }
+
+    @keyframes rise {
+      from {
+        opacity: 0;
+        transform: translateY(12px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="wrap">
+    <section class="hero">
+      <span class="eyebrow">Hackathon Round 1</span>
+      <h1>Build a Real-World OpenEnv Environment</h1>
+      <p class="subtitle">
+        Create a complete environment that an AI agent can learn from using the standard
+        <strong>step()</strong> / <strong>reset()</strong> / <strong>state()</strong> API, with deterministic grading,
+        meaningful rewards, and deployment-ready packaging.
+      </p>
+
+      <div class="topic">
+        Hackathon Topic: <strong>Pizza Shop Operations Simulator with OpenEnv</strong>
+      </div>
+
+      <div class="grid">
+        <article class="card">
+          <h3>Core Requirements</h3>
+          <ul>
+            <li>Simulate a real-world workflow (not a game).</li>
+            <li>Typed models for Observation, Action, and Reward.</li>
+            <li>At least 3 graded tasks (easy, medium, hard).</li>
+            <li>Reward shaping with partial progress signals.</li>
+          </ul>
+        </article>
+
+        <article class="card">
+          <h3>Must-Have Endpoints</h3>
+          <ul>
+            <li><code>/tasks</code> for task list + action schema.</li>
+            <li><code>/grader</code> for post-episode scoring.</li>
+            <li><code>/baseline</code> for reproducible model run.</li>
+          </ul>
+        </article>
+
+        <article class="card">
+          <h3>Submission Readiness</h3>
+          <ul>
+            <li>Working Dockerfile and local run flow.</li>
+            <li>HF Space deployment compatibility.</li>
+            <li>README with setup, spaces, and baseline scores.</li>
+            <li>Validation-friendly OpenEnv project structure.</li>
+          </ul>
+        </article>
+      </div>
+
+      <p class="footer">
+        Tip: Keep graders deterministic, scores in the range [0.0, 1.0], and ensure baseline behavior is reproducible.
+      </p>
+    </section>
+  </main>
+</body>
+</html>

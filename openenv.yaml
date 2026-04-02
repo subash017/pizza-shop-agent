@@ -1,0 +1,9 @@
+name: pizza_shop_env
+version: "1.0.0"
+description: OpenEnv pizza shop operations simulation with deterministic graders and trajectory rewards.
+entrypoint: server.app:app
+tags:
+  - openenv
+  - restaurant-ops
+  - pizza
+  - reinforcement-learning
