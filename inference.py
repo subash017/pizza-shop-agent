@@ -212,7 +212,7 @@ def main() -> int:
                     task_level = TASK_TO_LEVEL.get(task_name, 1)
                     observation = running_env.reset(task_level=task_level)
                     done = bool(observation.done)
-                    score = _strict_score(observation.progress)
+                    score = observation.progress
 
                     print(f"[START] task={task_name} env={BENCHMARK} model={MODEL_NAME}")
 
