@@ -117,6 +117,40 @@ set OPENAI_API_KEY=your_key_here
 python scripts/baseline_inference.py --model gpt-4o-mini
 ```
 
+## Submission Inference Script (Required)
+
+Create and run the root script `inference.py` for submission-compatible output.
+
+Required environment variables:
+- `HF_TOKEN` for authentication.
+- `API_BASE_URL` (default: `https://router.huggingface.co/v1`).
+- `MODEL_NAME` (default: `Qwen/Qwen2.5-72B-Instruct`).
+- `LOCAL_IMAGE_NAME` if you use local Docker execution via `from_docker_image`.
+
+Optional task controls:
+- `PIZZA_SHOP_TASK` in `{easy_lunch_shift, medium_dinner_rush, hard_storm_surge}`
+- `PIZZA_SHOP_BENCHMARK` (default: `pizza_shop_env`)
+- `MAX_STEPS` (default: `24`)
+
+Only `API_BASE_URL` and `MODEL_NAME` have built-in defaults in the inference script.
+
+Run example:
+
+```bash
+cd pizza_shop_env
+set HF_TOKEN=your_token_here
+set API_BASE_URL=https://router.huggingface.co/v1
+set MODEL_NAME=Qwen/Qwen2.5-72B-Instruct
+python inference.py
+```
+
+The script emits exactly these line types:
+- `[START]` once at episode begin.
+- `[STEP]` once immediately after each `step()` call.
+- `[END]` once at the end, even if exceptions occur.
+
+Rewards and score are formatted to two decimals, booleans are lowercase (`true`/`false`), and score is in `[0, 1]`.
+
 OpenRouter keys are also supported:
 
 ```bash
@@ -133,6 +167,15 @@ The repository includes a root `Dockerfile` configured for HF Spaces:
 
 ```bash
 uvicorn server.app:app --host 0.0.0.0 --port 7860
+```
+
+## Pre-Submission Validation
+
+Use the provided validation script to check Space health, Docker build, and OpenEnv validation:
+
+```bash
+cd pizza_shop_env
+bash scripts/validate-submission.sh https://your-space.hf.space .
 ```
 
 ## Tests
