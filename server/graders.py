@@ -1,6 +1,9 @@
 from dataclasses import dataclass
 from typing import Any, Mapping
 
+SUPPORTED_TASK_LEVELS = (1, 2, 3)
+EPSILON = 1e-6
+
 
 @dataclass
 class GradeResult:
@@ -42,6 +45,11 @@ def _ops_adjustments(state: Mapping[str, Any], target_late: int, max_refund_rati
     return late_score, refund_score, profit_score
 
 
+def _strict_open_interval(score: float) -> float:
+    # Phase-2 validator expects each task score to be strictly within (0, 1).
+    return max(EPSILON, min(1.0 - EPSILON, score))
+
+
 def grade_task_1(state: Mapping[str, Any]) -> GradeResult:
     required_items = [
         "all_orders_accepted",
@@ -53,6 +61,7 @@ def grade_task_1(state: Mapping[str, Any]) -> GradeResult:
     checklist_score = _score_from_checklist(state, required_items)
     late_score, refund_score, profit_score = _ops_adjustments(state, target_late=1, max_refund_ratio=0.1)
     score = max(0.0, min(1.0, 0.65 * checklist_score + 0.2 * late_score + 0.05 * refund_score + 0.1 * profit_score))
+    score = _strict_open_interval(score)
 
     passed = score >= 0.95
     return GradeResult(passed=passed, score=score, reason="task_1_complete" if passed else "task_1_partial")
@@ -70,6 +79,7 @@ def grade_task_2(state: Mapping[str, Any]) -> GradeResult:
     checklist_score = _score_from_checklist(state, required_items)
     late_score, refund_score, profit_score = _ops_adjustments(state, target_late=2, max_refund_ratio=0.12)
     score = max(0.0, min(1.0, 0.62 * checklist_score + 0.2 * late_score + 0.08 * refund_score + 0.1 * profit_score))
+    score = _strict_open_interval(score)
 
     passed = score >= 0.95
     return GradeResult(passed=passed, score=score, reason="task_2_complete" if passed else "task_2_partial")
@@ -97,6 +107,7 @@ def grade_task_3(state: Mapping[str, Any]) -> GradeResult:
             0.55 * checklist_score + 0.2 * late_score + 0.1 * refund_score + 0.15 * profit_score - complaint_penalty,
         ),
     )
+    score = _strict_open_interval(score)
 
     passed = score >= 0.95
     return GradeResult(passed=passed, score=score, reason="task_3_complete" if passed else "task_3_partial")
@@ -104,6 +115,10 @@ def grade_task_3(state: Mapping[str, Any]) -> GradeResult:
 
 def grade_current_task(state: Mapping[str, Any]) -> GradeResult:
     task_level = int(state.get("task_level", 1))
+    return grade_task_by_level(task_level, state)
+
+
+def grade_task_by_level(task_level: int, state: Mapping[str, Any]) -> GradeResult:
     if task_level == 1:
         return grade_task_1(state)
     if task_level == 2:

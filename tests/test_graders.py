@@ -23,7 +23,7 @@ def test_task_1_passes_with_full_workflow() -> None:
     }
     result = grade_current_task(state)
     assert result.passed is True
-    assert result.score == 1.0
+    assert 0.95 <= result.score < 1.0
 
 
 def test_task_2_partial_score_with_late_orders() -> None:

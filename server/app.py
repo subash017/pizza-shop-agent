@@ -10,7 +10,7 @@ from uvicorn import run as uvicorn_run
 from models import PizzaShopAction, PizzaShopObservation
 from server.baseline import run_baseline
 from server.environment import PizzaShopEnvironment
-from server.graders import grade_current_task
+from server.graders import grade_current_task, grade_task_by_level
 
 app = create_fastapi_app(
     PizzaShopEnvironment,
@@ -27,6 +27,8 @@ ui_env.reset(task_level=1)
 
 class GraderRequest(BaseModel):
     state: Optional[Dict[str, Any]] = None
+    task_level: Optional[int] = None
+    task_id: Optional[str] = None
 
 
 def _render_ui_state(obs: PizzaShopObservation) -> Dict[str, Any]:
@@ -106,8 +108,12 @@ def health() -> Dict[str, str]:
 
 @app.get("/tasks")
 def list_tasks() -> Dict[str, Any]:
+    tasks = utility_env.task_descriptions()
+    task_lookup = {str(task.get("task_id")): int(task.get("task_level", 1)) for task in tasks}
     return {
-        "tasks": utility_env.task_descriptions(),
+        "tasks": tasks,
+        "graded_tasks": task_lookup,
+        "grader_score_range": "(0,1)",
         "action_schema": PizzaShopAction.model_json_schema(),
     }
 
@@ -115,11 +121,30 @@ def list_tasks() -> Dict[str, Any]:
 @app.post("/grader")
 def grader(payload: Optional[GraderRequest] = None) -> Dict[str, Any]:
     state = utility_env.state.model_dump()
+
     if payload and payload.state:
         state = payload.state
+        result = grade_current_task(state)
+    else:
+        task_level = 1
+        if payload and payload.task_level is not None:
+            task_level = int(payload.task_level)
+        elif payload and payload.task_id:
+            task_id_map = {
+                "easy_lunch_shift": 1,
+                "medium_dinner_rush": 2,
+                "hard_storm_surge": 3,
+            }
+            task_level = task_id_map.get(str(payload.task_id), 1)
 
-    result = grade_current_task(state)
+        obs = utility_env.reset(task_level=task_level)
+        state = utility_env.state.model_dump()
+        state["task_level"] = int(obs.task_level)
+        result = grade_task_by_level(int(obs.task_level), state)
+
     return {
+        "task_level": int(state.get("task_level", 1)),
+        "task_id": str(state.get("task_id", "")),
         "score": result.score,
         "passed": result.passed,
         "reason": result.reason,
