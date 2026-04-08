@@ -2,7 +2,8 @@ from dataclasses import dataclass
 from typing import Any, Mapping
 
 SUPPORTED_TASK_LEVELS = (1, 2, 3)
-EPSILON = 1e-6
+MIN_SCORE = 0.01
+MAX_SCORE = 0.99
 
 
 @dataclass
@@ -47,7 +48,7 @@ def _ops_adjustments(state: Mapping[str, Any], target_late: int, max_refund_rati
 
 def _strict_open_interval(score: float) -> float:
     # Phase-2 validator expects each task score to be strictly within (0, 1).
-    return max(EPSILON, min(1.0 - EPSILON, score))
+    return max(MIN_SCORE, min(MAX_SCORE, score))
 
 
 def grade_task_1(state: Mapping[str, Any]) -> GradeResult:

@@ -151,6 +151,24 @@ def grader(payload: Optional[GraderRequest] = None) -> Dict[str, Any]:
     }
 
 
+@app.get("/grader")
+def grader_get(task_level: int = 1) -> Dict[str, Any]:
+    return grader(GraderRequest(task_level=task_level))
+
+
+@app.get("/graders")
+def graders_summary() -> Dict[str, Any]:
+    results = []
+    for task_level in [1, 2, 3]:
+        row = grader(GraderRequest(task_level=task_level))
+        results.append(row)
+    return {
+        "task_count": len(results),
+        "score_range": "(0,1)",
+        "tasks": results,
+    }
+
+
 @app.get("/baseline")
 def baseline(model: str = "gpt-4o-mini") -> Dict[str, Any]:
     try:

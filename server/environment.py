@@ -338,6 +338,13 @@ class PizzaShopEnvironment(Environment):
                     "task_id": spec["task_id"],
                     "objective": spec["objective"],
                     "max_steps": spec["max_steps"],
+                    "grader": {
+                        "enabled": True,
+                        "task_level": level,
+                        "task_id": spec["task_id"],
+                        "score_range": "(0,1)",
+                        "endpoint": "/grader",
+                    },
                     "actions": {
                         "action_type": [
                             "accept_order",
