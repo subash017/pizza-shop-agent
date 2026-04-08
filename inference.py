@@ -8,8 +8,8 @@ from client import PizzaShopEnv
 from models import PizzaShopAction
 
 LOCAL_IMAGE_NAME = os.getenv("LOCAL_IMAGE_NAME")
-API_KEY = (os.getenv("HF_TOKEN") or "").strip()
-API_BASE_URL = os.getenv("API_BASE_URL", "https://router.huggingface.co/v1").strip()
+API_KEY = (os.getenv("API_KEY") or "").strip()
+API_BASE_URL = (os.getenv("API_BASE_URL") or "").strip()
 MODEL_NAME = os.getenv("MODEL_NAME", "Qwen/Qwen2.5-72B-Instruct").strip()
 TASK_NAME = (os.getenv("PIZZA_SHOP_TASK") or "").strip()
 BENCHMARK = (os.getenv("PIZZA_SHOP_BENCHMARK") or "pizza_shop_env").strip()
@@ -181,7 +181,9 @@ def main() -> int:
 
     try:
         if not API_KEY:
-            raise RuntimeError("HF_TOKEN must be set")
+            raise RuntimeError("API_KEY must be set")
+        if not API_BASE_URL:
+            raise RuntimeError("API_BASE_URL must be set")
 
         client = OpenAI(api_key=API_KEY, base_url=API_BASE_URL)
         env = _build_env()
