@@ -182,6 +182,14 @@ def main() -> int:
         api_key = os.environ["API_KEY"].strip()
 
         client = OpenAI(base_url=api_base_url, api_key=api_key)
+        # Force at least one proxy-visible LLM request before env interaction.
+        client.chat.completions.create(
+            model=MODEL_NAME,
+            messages=[{"role": "user", "content": "ping"}],
+            temperature=0,
+            max_tokens=1,
+        )
+
         env = _build_env()
         task_level = TASK_TO_LEVEL.get(TASK_NAME, 1)
 
