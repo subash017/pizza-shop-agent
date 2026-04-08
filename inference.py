@@ -35,6 +35,7 @@ TASK_TO_LEVEL = {
     "medium_dinner_rush": 2,
     "hard_storm_surge": 3,
 }
+TASKS = ["easy_lunch_shift", "medium_dinner_rush", "hard_storm_surge"]
 
 
 def _normalize_text(value: Any) -> str:
@@ -158,6 +159,15 @@ def _fmt_reward(value: Any) -> str:
     return f"{float(value or 0.0):.2f}"
 
 
+def _strict_score(value: Any) -> float:
+    raw_score = float(value)
+    if raw_score <= 0.0:
+        return 0.01
+    if raw_score >= 1.0:
+        return 0.99
+    return raw_score
+
+
 def _build_env() -> PizzaShopEnv:
     if LOCAL_IMAGE_NAME:
         try:
@@ -171,10 +181,6 @@ def _build_env() -> PizzaShopEnv:
 
 
 def main() -> int:
-    rewards: list[float] = []
-    step_count = 0
-    success = False
-    score = 0.0
     env = None
 
     try:
@@ -191,48 +197,64 @@ def main() -> int:
         )
 
         env = _build_env()
-        task_level = TASK_TO_LEVEL.get(TASK_NAME, 1)
+        selected_tasks = TASKS
+        if TASK_NAME and TASK_NAME in TASK_TO_LEVEL:
+            selected_tasks = [TASK_NAME]
 
         with env.sync() as running_env:
-            observation = running_env.reset(task_level=task_level)
-            done = bool(observation.done)
-            score = max(0.0, min(1.0, float(observation.progress)))
+            for task_name in selected_tasks:
+                rewards: list[float] = []
+                step_count = 0
+                success = False
+                score = 0.01
 
-            resolved_task = TASK_NAME or str(observation.task_id)
-            print(f"[START] task={resolved_task} env={BENCHMARK} model={MODEL_NAME}")
+                try:
+                    task_level = TASK_TO_LEVEL.get(task_name, 1)
+                    observation = running_env.reset(task_level=task_level)
+                    done = bool(observation.done)
+                    score = _strict_score(observation.progress)
 
-            while not done and step_count < MAX_STEPS:
-                action = _make_action(client, observation.model_dump(), seed=100 + step_count)
-                result = running_env.step(action)
-                step_count += 1
+                    print(f"[START] task={task_name} env={BENCHMARK} model={MODEL_NAME}")
 
-                reward = float(result.reward or 0.0)
-                rewards.append(reward)
-                done = bool(result.done)
-                observation = result.observation
-                score = max(0.0, min(1.0, float(observation.progress)))
+                    while not done and step_count < MAX_STEPS:
+                        action = _make_action(client, observation.model_dump(), seed=100 + step_count)
+                        result = running_env.step(action)
+                        step_count += 1
 
-                raw_error = getattr(result, "last_action_error", None)
-                if raw_error is None:
-                    raw_error = getattr(observation, "last_action_error", None)
-                error_text = "null" if raw_error in (None, "") else str(raw_error)
+                        reward = float(result.reward or 0.0)
+                        rewards.append(reward)
+                        done = bool(result.done)
+                        observation = result.observation
+                        score = _strict_score(observation.progress)
 
-                print(
-                    f"[STEP] step={step_count} action={_action_str(action)} "
-                    f"reward={_fmt_reward(reward)} done={_to_bool(done)} error={error_text}"
-                )
+                        raw_error = getattr(result, "last_action_error", None)
+                        if raw_error is None:
+                            raw_error = getattr(observation, "last_action_error", None)
+                        error_text = "null" if raw_error in (None, "") else str(raw_error)
 
-            success = done and score >= SUCCESS_THRESHOLD
+                        print(
+                            f"[STEP] step={step_count} action={_action_str(action)} "
+                            f"reward={_fmt_reward(reward)} done={_to_bool(done)} error={error_text}"
+                        )
+
+                    success = done and score >= SUCCESS_THRESHOLD
+                except Exception:
+                    print(f"[START] task={task_name} env={BENCHMARK} model={MODEL_NAME}")
+                    success = False
+                finally:
+                    reward_csv = ",".join(f"{value:.2f}" for value in rewards)
+                    print(
+                        f"[END] success={_to_bool(success)} steps={step_count} "
+                        f"score={score:.2f} rewards={reward_csv}"
+                    )
 
     except Exception:
-        # Emit a valid START line even if reset/setup fails before episode loop.
-        print(f"[START] task={TASK_NAME or 'unknown'} env={BENCHMARK} model={MODEL_NAME}")
-        success = False
-    finally:
-        reward_csv = ",".join(f"{value:.2f}" for value in rewards)
+        # Emit a valid fallback episode log if initialization fails completely.
+        task_name = TASK_NAME if TASK_NAME else "unknown"
+        print(f"[START] task={task_name} env={BENCHMARK} model={MODEL_NAME}")
         print(
-            f"[END] success={_to_bool(success)} steps={step_count} "
-            f"score={score:.2f} rewards={reward_csv}"
+            f"[END] success=false steps=0 "
+            f"score=0.01 rewards="
         )
 
     return 0
