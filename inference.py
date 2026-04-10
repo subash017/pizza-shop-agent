@@ -185,7 +185,9 @@ def main() -> int:
 
     try:
         api_base_url = os.environ["API_BASE_URL"].strip()
-        api_key = os.environ["API_KEY"].strip()
+        api_key = (os.getenv("API_KEY") or os.getenv("HF_TOKEN") or "").strip()
+        if not api_key:
+            raise RuntimeError("API_KEY or HF_TOKEN must be set")
 
         client = OpenAI(base_url=api_base_url, api_key=api_key)
         # Force at least one proxy-visible LLM request before env interaction.
@@ -207,14 +209,16 @@ def main() -> int:
                 step_count = 0
                 success = False
                 score = 0.01
+                started = False
 
                 try:
                     task_level = TASK_TO_LEVEL.get(task_name, 1)
                     observation = running_env.reset(task_level=task_level)
                     done = bool(observation.done)
-                    score = observation.progress
+                    score = _strict_score(observation.progress)
 
                     print(f"[START] task={task_name} env={BENCHMARK} model={MODEL_NAME}")
+                    started = True
 
                     while not done and step_count < MAX_STEPS:
                         action = _make_action(client, observation.model_dump(), seed=100 + step_count)
@@ -239,7 +243,8 @@ def main() -> int:
 
                     success = done and score >= SUCCESS_THRESHOLD
                 except Exception:
-                    print(f"[START] task={task_name} env={BENCHMARK} model={MODEL_NAME}")
+                    if not started:
+                        print(f"[START] task={task_name} env={BENCHMARK} model={MODEL_NAME}")
                     success = False
                 finally:
                     reward_csv = ",".join(f"{value:.2f}" for value in rewards)
