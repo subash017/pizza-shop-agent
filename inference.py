@@ -8,6 +8,8 @@ from client import PizzaShopEnv
 from models import PizzaShopAction
 
 LOCAL_IMAGE_NAME = os.getenv("LOCAL_IMAGE_NAME")
+API_KEY = (os.getenv("HF_TOKEN") or os.getenv("API_KEY") or "").strip()
+API_BASE_URL = os.getenv("API_BASE_URL", "https://router.huggingface.co/v1").strip()
 MODEL_NAME = os.getenv("MODEL_NAME", "Qwen/Qwen2.5-72B-Instruct").strip()
 TASK_NAME = (os.getenv("PIZZA_SHOP_TASK") or "").strip()
 BENCHMARK = (os.getenv("PIZZA_SHOP_BENCHMARK") or "pizza_shop_env").strip()
@@ -184,8 +186,10 @@ def main() -> int:
     env = None
 
     try:
-        api_base_url = os.environ["API_BASE_URL"].strip()
-        api_key = (os.getenv("API_KEY") or os.getenv("HF_TOKEN") or "").strip()
+        api_base_url = API_BASE_URL
+        api_key = API_KEY
+        if not api_base_url:
+            raise RuntimeError("API_BASE_URL must be set")
         if not api_key:
             raise RuntimeError("API_KEY or HF_TOKEN must be set")
 
